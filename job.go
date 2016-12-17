@@ -356,21 +356,11 @@ func (j *Job) HasQueuedBuild() {
 }
 
 func (j *Job) InvokeSimple(params map[string]string) (int64, error) {
-	isQueued, err := j.IsQueued()
-	if err != nil {
-		return 0, err
-	}
-	if isQueued {
-		Error.Printf("%s is already running", j.GetName())
-		return 0, nil
-	}
-
-	endpoint := "/build"
-	parameters, err := j.GetParameters()
-	if err != nil {
-		return 0, err
-	}
-	if len(parameters) > 0 {
+	_, hasDelayParam := params["delay"]
+	var endpoint string
+	if len(params) == 0 || (len(params) == 1 && hasDelayParam) {
+		endpoint = "/build"
+	} else {
 		endpoint = "/buildWithParameters"
 	}
 	data := url.Values{}
